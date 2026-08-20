@@ -1,60 +1,68 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import Header from './components/Header'
 import Hero from './components/Hero'
 import ProductCard from './components/ProductCard'
+import CartDrawer from './components/CartDrawer'
 import Footer from './components/Footer'
+import products from './data/products'
 import './App.css'
 
-const products = [
-  {
-    id: 1,
-    name: 'Everyday Canvas Tote',
-    category: 'Carry',
-    price: 42,
-    description: 'A structured cotton tote designed for errands, workdays, and everything between.',
-    image: 'https://images.unsplash.com/photo-1594223274512-ad4803739b7c?auto=format&fit=crop&w=1200&q=85',
-    color: 'Natural',
-  },
-  {
-    id: 2,
-    name: 'Handmade Ceramic Cup',
-    category: 'Home',
-    price: 28,
-    description: 'A softly speckled stoneware cup, shaped and glazed by hand for slow morning drinks.',
-    image: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1200&q=85',
-    color: 'Oat',
-  },
-]
+const categories = ['All', ...new Set(products.map((product) => product.category))]
 
 function App() {
-  const [cartCount, setCartCount] = useState(0)
+  const [activeCategory, setActiveCategory] = useState('All')
+  const [cart, setCart] = useState([])
+  const [cartOpen, setCartOpen] = useState(false)
   const [notice, setNotice] = useState('')
 
+  const visibleProducts = useMemo(() => (
+    activeCategory === 'All'
+      ? products
+      : products.filter((product) => product.category === activeCategory)
+  ), [activeCategory])
+
+  const cartCount = cart.reduce((total, item) => total + item.quantity, 0)
+
   const addToCart = (product, quantity) => {
-    setCartCount((count) => count + quantity)
-    setNotice(`${quantity} × ${product.name} added to your bag.`)
-    window.setTimeout(() => setNotice(''), 2400)
+    setCart((current) => {
+      const found = current.find((item) => item.id === product.id)
+      return found
+        ? current.map((item) => item.id === product.id ? { ...item, quantity: item.quantity + quantity } : item)
+        : [...current, { ...product, quantity }]
+    })
+    setNotice(`${product.name} is tucked into your bag!`)
+    window.setTimeout(() => setNotice(''), 2200)
+  }
+
+  const changeCartQuantity = (id, amount) => {
+    setCart((current) => current
+      .map((item) => item.id === id ? { ...item, quantity: item.quantity + amount } : item)
+      .filter((item) => item.quantity > 0))
   }
 
   return (
     <div className="storefront">
-      <Header cartCount={cartCount} />
+      <Header cartCount={cartCount} onCartOpen={() => setCartOpen(true)} />
       <main>
-        <Hero />
+        <Hero productCount={products.length} />
         <section className="products-section" id="shop" aria-labelledby="products-title">
           <div className="section-title">
-            <p>Shop the collection</p>
-            <h2 id="products-title">Two objects, thoughtfully made.</h2>
+            <div><p>Shop tiny joys</p><h2 id="products-title">Lovely things for ordinary days.</h2></div>
+            <span>{visibleProducts.length} little finds</span>
+          </div>
+          <div className="category-filters" aria-label="Filter products by category">
+            {categories.map((category) => (
+              <button key={category} className={activeCategory === category ? 'active' : ''} onClick={() => setActiveCategory(category)}>{category}</button>
+            ))}
           </div>
           <div className="product-grid">
-            {products.map((product) => (
-              <ProductCard key={product.id} product={product} onAdd={addToCart} />
-            ))}
+            {visibleProducts.map((product) => <ProductCard key={product.id} product={product} onAdd={addToCart} />)}
           </div>
         </section>
       </main>
       <Footer />
-      <div className={`cart-notice ${notice ? 'visible' : ''}`} role="status" aria-live="polite">{notice}</div>
+      <CartDrawer items={cart} open={cartOpen} onClose={() => setCartOpen(false)} onQuantityChange={changeCartQuantity} />
+      <div className={`cart-notice ${notice ? 'visible' : ''}`} role="status" aria-live="polite">✿ {notice}</div>
     </div>
   )
 }
