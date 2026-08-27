@@ -1,22 +1,29 @@
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import { Link } from "react-router-dom";
+import type { Product } from "../types/domain-models";
 
-function ProductCard({ product, onAdd, wished, onToggleWishlist }) {
+interface CardProps {
+  product: Product;
+  onAdd: (product: Product, quantity: number) => void;
+  wished: boolean;
+  onToggleWishlist: (product: Product) => void;
+}
+
+function ProductCard({
+  product,
+  onAdd,
+  wished,
+  onToggleWishlist,
+}: CardProps) {
   const [quantity, setQuantity] = useState(1);
   const [imageFailed, setImageFailed] = useState(false);
+  const imageStyle = { "--card-accent": product.accent } as CSSProperties;
 
   return (
     <article className="product-card">
-      <div
-        className="product-image-wrap"
-        style={{ "--card-accent": product.accent }}
-      >
+      <div className="product-image-wrap" style={imageStyle}>
         {imageFailed ? (
-          <span
-            className="product-fallback"
-            role="img"
-            aria-label={product.name}
-          >
+          <span className="product-fallback" role="img" aria-label={product.name}>
             {product.fallback}
           </span>
         ) : (
