@@ -9,6 +9,7 @@ import RewardsGame from "./components/RewardsGame";
 import ProductListPage from "./pages/ProductListPage";
 import ProductDetailsPage from "./pages/ProductDetailsPage";
 import ErrorBoundary from "./components/ErrorBoundary";
+import { useFavouriteStore } from "./store/useFavouriteStore";
 import "./App.css";
 
 function App() {
@@ -19,10 +20,12 @@ function App() {
   const [user, setUser] = useState(null);
   const [loginOpen, setLoginOpen] = useState(false);
   const [welcomeName, setWelcomeName] = useState("");
-  const [wishlist, setWishlist] = useState([]);
   const [wishlistOpen, setWishlistOpen] = useState(false);
   const [activeVoucher, setActiveVoucher] = useState(null);
   const [bagLoading, setBagLoading] = useState(false);
+  const wishlist = useFavouriteStore((state) => state.favourites);
+  const toggleFavourite = useFavouriteStore((state) => state.toggleFavourite);
+  const removeFavourite = useFavouriteStore((state) => state.removeFavourite);
 
   useEffect(() => {
     const loadingTimer = window.setTimeout(() => setPageLoading(false), 1200);
@@ -74,11 +77,7 @@ function App() {
 
   const toggleWishlist = (product) => {
     const alreadySaved = wishlist.some((item) => item.id === product.id);
-    setWishlist((current) =>
-      alreadySaved
-        ? current.filter((item) => item.id !== product.id)
-        : [...current, product],
-    );
+    toggleFavourite(product);
     setNotice(
       alreadySaved
         ? `${product.name} left your wishlist.`
@@ -89,7 +88,7 @@ function App() {
 
   const moveWishlistItemToBag = (product) => {
     addToCart(product, 1);
-    setWishlist((current) => current.filter((item) => item.id !== product.id));
+    removeFavourite(product.id);
   };
 
   return (
@@ -179,9 +178,7 @@ function App() {
         items={wishlist}
         open={wishlistOpen}
         onClose={() => setWishlistOpen(false)}
-        onRemove={(id) =>
-          setWishlist((current) => current.filter((item) => item.id !== id))
-        }
+        onRemove={removeFavourite}
         onMoveToBag={moveWishlistItemToBag}
       />
       <LoginModal
