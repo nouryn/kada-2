@@ -1,15 +1,13 @@
 import { useEffect, useState } from "react";
+import { useDebounce } from "../hooks/debounce";
 
 function ProductFilters({ categories, filters, onFilterChange }) {
   const [searchInput, setSearchInput] = useState(filters.search);
+  const debouncedSearch = useDebounce(searchInput);
 
   useEffect(() => {
-    const debounceId = setTimeout(() => {
-      onFilterChange("search", searchInput);
-    }, 300);
-
-    return () => clearTimeout(debounceId);
-  }, [searchInput, onFilterChange]);
+    onFilterChange("search", debouncedSearch);
+  }, [debouncedSearch, onFilterChange]);
 
   return (
     <form
