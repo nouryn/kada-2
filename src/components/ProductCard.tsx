@@ -1,4 +1,4 @@
-import { useState, type CSSProperties } from "react";
+import { useState, type CSSProperties, type SyntheticEvent } from "react";
 import { Link } from "react-router-dom";
 import type { Product } from "../types/domain-models";
 
@@ -15,9 +15,12 @@ function ProductCard({
   wished,
   onToggleWishlist,
 }: CardProps) {
-  const [quantity, setQuantity] = useState(1);
-  const [imageFailed, setImageFailed] = useState(false);
+  const [quantity, setQuantity] = useState<number>(1);
+  const [imageFailed, setImageFailed] = useState<boolean>(false);
   const imageStyle = { "--card-accent": product.accent } as CSSProperties;
+  const handleImageError = (_event: SyntheticEvent<HTMLImageElement>) => {
+    setImageFailed(true);
+  };
 
   return (
     <article className="product-card">
@@ -31,7 +34,7 @@ function ProductCard({
             src={product.image}
             alt={product.name}
             className="product-image"
-            onError={() => setImageFailed(true)}
+            onError={handleImageError}
           />
         )}
         <span className="product-badge">{product.badge}</span>
