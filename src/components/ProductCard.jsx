@@ -1,8 +1,9 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
-function ProductCard({ product, onAdd }) {
+function ProductCard({ product, onAdd, wished, onToggleWishlist }) {
   const [quantity, setQuantity] = useState(1);
-  const [liked, setLiked] = useState(false);
+  const [imageFailed, setImageFailed] = useState(false);
 
   return (
     <article className="product-card">
@@ -10,15 +11,30 @@ function ProductCard({ product, onAdd }) {
         className="product-image-wrap"
         style={{ "--card-accent": product.accent }}
       >
-        <img src={product.image} alt={product.name} className="product-image" />
+        {imageFailed ? (
+          <span
+            className="product-fallback"
+            role="img"
+            aria-label={product.name}
+          >
+            {product.fallback}
+          </span>
+        ) : (
+          <img
+            src={product.image}
+            alt={product.name}
+            className="product-image"
+            onError={() => setImageFailed(true)}
+          />
+        )}
         <span className="product-badge">{product.badge}</span>
         <button
-          className={`heart-button ${liked ? "liked" : ""}`}
+          className={`heart-button ${wished ? "liked" : ""}`}
           type="button"
-          onClick={() => setLiked((value) => !value)}
-          aria-label={`${liked ? "Remove" : "Save"} ${product.name}`}
+          onClick={() => onToggleWishlist(product)}
+          aria-label={`${wished ? "Remove" : "Save"} ${product.name}`}
         >
-          {liked ? "♥" : "♡"}
+          {wished ? "♥" : "♡"}
         </button>
       </div>
       <div className="product-info">
@@ -30,6 +46,9 @@ function ProductCard({ product, onAdd }) {
           <p>${product.price}</p>
         </div>
         <p className="product-description">{product.description}</p>
+        <Link className="details-button" to={`/products/${product.id}`}>
+          View details <span>→</span>
+        </Link>
         <div className="product-meta">
           <span>Colour</span>
           <strong>
